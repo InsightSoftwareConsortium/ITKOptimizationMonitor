@@ -1,0 +1,9 @@
+UNIQUE(types "${WRAP_ITK_SCALAR};D")
+
+itk_wrap_class("itk::CommandExhaustiveLog" POINTER)
+  foreach(t ${types})
+    foreach(d ${ITK_WRAP_IMAGE_DIMS})
+      itk_wrap_template("${ITKM_${t}}${d}" "${ITKT_${t}},${d}")
+    endforeach()
+  endforeach()
+itk_end_wrap_class()
