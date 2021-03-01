@@ -20,40 +20,6 @@
 #include "itkImageFileWriter.h"
 #include "itkTestingMacros.h"
 
-namespace
-{
-class LogExhaustiveIterations : public itk::Command
-{
-public:
-  itkNewMacro(LogExhaustiveIterations);
-
-  void
-  Execute(itk::Object * caller, const itk::EventObject & event) override
-  {
-    Execute((const itk::Object *)caller, event);
-  }
-
-  void
-  Execute(const itk::Object * caller, const itk::EventObject & event) override
-  {
-    if (!itk::ProgressEvent().CheckEvent(&event))
-    {
-      return;
-    }
-    const auto * processObject = dynamic_cast<const itk::ProcessObject *>(caller);
-    if (!processObject)
-    {
-      return;
-    }
-    std::cout << " " << processObject->GetProgress();
-  }
-
-protected:
-    LogExhaustiveIterations();
-    ~LogExhaustiveIterations() override = default;
-};
-} // namespace
-
 int itkExhaustiveMonitorTest(int argc, char * argv[])
 {
   if (argc < 2)
