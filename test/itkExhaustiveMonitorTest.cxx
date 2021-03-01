@@ -54,7 +54,7 @@ protected:
 };
 } // namespace
 
-int itkMyFilterTest(int argc, char * argv[])
+int itkExhaustiveMonitorTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
