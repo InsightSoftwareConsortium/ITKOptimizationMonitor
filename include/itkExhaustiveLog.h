@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef itkExhaustiveLog_hxx
-#define itkExhaustiveLog_hxx
+#ifndef itkExhaustiveLog_h
+#define itkExhaustiveLog_h
 
 #include "itkCommand.h"
 #include "itkExhaustiveOptimizerv4.h"
