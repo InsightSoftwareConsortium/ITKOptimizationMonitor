@@ -24,33 +24,33 @@
 #include "itkCommand.h"
 #include "itkExhaustiveOptimizerv4.h"
 
- /*
- namespace itk
- {
-     template <typename ImageType>
-     void
-     ExhaustiveLog<ImageType>::Execute(itk::Object* caller, const itk::EventObject& event) override
-     {
-         Execute((const itk::Object*)caller, event);
-     }
 
-     template <typename ImageType>
-     void
-     ExhaustiveLog<ImageType>::Execute(const itk::Object* caller, const itk::EventObject& event) override
-     {
-         if (!itk::ProgressEvent().CheckEvent(&event))
-         {
-             return;
-         }
-         auto optimizer = static_cast<const OptimizerType*>(object);
-         if (!filter)
-         {
-             return;
-         }
+namespace itk
+{
+    template <typename ImageType>
+    void
+        ExhaustiveLog<ImageType>::Execute(itk::Object* caller, const itk::EventObject& event) override
+    {
+        Execute((const itk::Object*)caller, event);
+    }
 
-         OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
-         OptimizerType::MeasureType measure = optimizer->GetCurrentValue();
-     }
- } // namespace*/
+    template <typename ImageType>
+    void
+        ExhaustiveLog<ImageType>::Execute(const itk::Object* caller, const itk::EventObject& event) override
+    {
+        if (!itk::ProgressEvent().CheckEvent(&event))
+        {
+            return;
+        }
+        auto optimizer = static_cast<const OptimizerType*>(object);
+        if (!filter)
+        {
+            return;
+        }
+
+        OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
+        OptimizerType::MeasureType measure = optimizer->GetCurrentValue();
+    }
+} // namespace
 
 #endif // itkExhaustiveLog_hxx
