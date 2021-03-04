@@ -19,20 +19,21 @@
 #define itkExhaustiveLog_h
 
 #include "itkCommand.h"
-#include "itkExhaustiveOptimizerv4.h"
+#include "itkImage.h"
+//#include "itkExhaustiveOptimizerv4.h"
 
 namespace itk
 {
-    <template ImageType>
-    class ExhaustiveLog<ImageType> : public itk::Command
+    class ExhaustiveLog : public itk::Command
     {
     public:
+        //using ImageType = itk::Image<float, 2>;
         using Self = ExhaustiveLog;
         using Superclass = itk::Command;
         using Pointer = itk::SmartPointer<Self>;
         itkNewMacro(Self);
 
-        using OptimizerType = itk::ExhaustiveOptimizerv4<double>;
+        //using OptimizerType = itk::ExhaustiveOptimizerv4<double>;
 
         void
             Execute(itk::Object* caller, const itk::EventObject& event) override;
@@ -41,15 +42,19 @@ namespace itk
             Execute(const itk::Object* caller, const itk::EventObject& event) override;
 
         // Set/Get the image representation of exhaustive optimization over a region.
-        itkGetConstMacro(ExhaustiveImage, double);
-        itkSetMacro(ExhaustiveImage, double);
+        //itkGetConstMacro(ExhaustiveImage, double);
+        //itkSetMacro(ExhaustiveImage, double);
 
     protected:
-        ExhaustiveLog() = default;
-        ~ExhaustiveLog() override = default;
+        ExhaustiveLog();
+        ~ExhaustiveLog() override;
     private:
-        ImageType m_ExhaustiveImage;
+        //ImageType m_ExhaustiveImage;
     };
 } // namespace
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkExhaustiveLog.hxx"
+#endif
 
 #endif // itkExhaustiveLog_hxx

@@ -14,7 +14,6 @@ file(READ "${MY_CURRENT_DIR}/README.rst" DOCUMENTATION)
 itk_module(OptimizationMonitor
   DEPENDS
     ITKCommon
-    ITKOptimizersv4
   COMPILE_DEPENDS
     ITKImageSources
   TEST_DEPENDS

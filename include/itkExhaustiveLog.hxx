@@ -22,34 +22,35 @@
 #include "itkExhaustiveLog.h"
 
 #include "itkCommand.h"
-#include "itkExhaustiveOptimizerv4.h"
+//#include "itkExhaustiveOptimizerv4.h"
 
 
 namespace itk
 {
-    template <typename ImageType>
+    ExhaustiveLog::ExhaustiveLog() = default;
+    ExhaustiveLog::~ExhaustiveLog() = default;
+
     void
-        ExhaustiveLog<ImageType>::Execute(itk::Object* caller, const itk::EventObject& event) override
+        ExhaustiveLog::Execute(itk::Object* caller, const itk::EventObject& event)
     {
         Execute((const itk::Object*)caller, event);
     }
 
-    template <typename ImageType>
     void
-        ExhaustiveLog<ImageType>::Execute(const itk::Object* caller, const itk::EventObject& event) override
+        ExhaustiveLog::Execute(const itk::Object* caller, const itk::EventObject& event)
     {
         if (!itk::ProgressEvent().CheckEvent(&event))
         {
             return;
         }
-        auto optimizer = static_cast<const OptimizerType*>(object);
-        if (!filter)
+        /*auto optimizer = static_cast<const OptimizerType*>(object);
+        if (!optimizer)
         {
             return;
         }
 
         OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
-        OptimizerType::MeasureType measure = optimizer->GetCurrentValue();
+        OptimizerType::MeasureType measure = optimizer->GetCurrentValue();*/
     }
 } // namespace
 
