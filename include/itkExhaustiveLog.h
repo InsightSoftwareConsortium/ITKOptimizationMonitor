@@ -24,10 +24,10 @@
 
 namespace itk
 {
+    template <typename ImageType>
     class ExhaustiveLog : public itk::Command
     {
     public:
-        //using ImageType = itk::Image<float, 2>;
         using Self = ExhaustiveLog;
         using Superclass = itk::Command;
         using Pointer = itk::SmartPointer<Self>;
@@ -42,8 +42,8 @@ namespace itk
             Execute(const itk::Object* caller, const itk::EventObject& event) override;
 
         // Set/Get the image representation of exhaustive optimization over a region.
-        //itkGetConstMacro(ExhaustiveImage, double);
-        //itkSetMacro(ExhaustiveImage, double);
+        //itkGetConstMacro(ExhaustiveImage, ImageType);
+        //itkSetMacro(ExhaustiveImage, ImageType);
 
     protected:
         ExhaustiveLog();

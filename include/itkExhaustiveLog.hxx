@@ -27,17 +27,22 @@
 
 namespace itk
 {
-    ExhaustiveLog::ExhaustiveLog() = default;
-    ExhaustiveLog::~ExhaustiveLog() = default;
+    template <typename ImageType>
+    ExhaustiveLog<ImageType>::ExhaustiveLog() = default;
 
+    template <typename ImageType>
+    ExhaustiveLog<ImageType>::~ExhaustiveLog() = default;
+
+    template <typename ImageType>
     void
-        ExhaustiveLog::Execute(itk::Object* caller, const itk::EventObject& event)
+        ExhaustiveLog<ImageType>::Execute(itk::Object* caller, const itk::EventObject& event)
     {
         Execute((const itk::Object*)caller, event);
     }
 
+    template <typename ImageType>
     void
-        ExhaustiveLog::Execute(const itk::Object* caller, const itk::EventObject& event)
+        ExhaustiveLog<ImageType>::Execute(const itk::Object* caller, const itk::EventObject& event)
     {
         if (!itk::ProgressEvent().CheckEvent(&event))
         {

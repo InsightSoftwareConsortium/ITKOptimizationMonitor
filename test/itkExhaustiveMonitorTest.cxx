@@ -16,10 +16,20 @@
  *
  *=========================================================================*/
 
+#include "itkImage.h"
+#include "itkExhaustiveLog.h"
 #include "itkTestingMacros.h"
 
 int itkExhaustiveMonitorTest(int argc, char* argv[])
 {
+    using PixelType = unsigned char;
+    constexpr unsigned int Dimension = 3;
+    using ImageType = itk::Image<PixelType, Dimension>;
+    using CommandType = itk::ExhaustiveLog<ImageType>;
+
+    ImageType::Pointer img = ImageType::New();
+    CommandType::Pointer log = CommandType::New();
+
     // Empty test to verify build success
     return EXIT_SUCCESS;
 }
