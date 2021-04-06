@@ -20,6 +20,7 @@
 
 #include "itkMacro.h"
 #include "itkCommand.h"
+#include "itkArray2D.h"
 #include "itkTransform.h"
 #include "itkExhaustiveOptimizerv4.h"
 
@@ -42,8 +43,8 @@ namespace itk
         // TODO extend for other optimizers with a fill value
         //using constexpr FillValue = 0;
 
-        using StepsSizeType = itk::Array<InternalDataType>;
-        using StepsType = OptimizerType::StepsType;
+        using StepsSizeType = itk::Array<InternalDataType>; // compatible with floating point positions
+        using StepsType = Array<SizeValueType>;             // integer-valued array indices
 
         void Execute(itk::Object* caller, const itk::EventObject& event) override;
 
@@ -51,7 +52,15 @@ namespace itk
 
         void Initialize(const OptimizerType* optimizer);
 
-        void SetDataElement(const StepsSizeType& position, const InternalDataType& value); // TODO private?
+        TInternalData GetDataAtPosition(const StepsSizeType& position);
+
+        // Get itk::Array as a copy of a slice of the collected data
+        void GetDataSlice2D(const StepsSizeType& position, const std::vector<bool>& dimIsVariable, itk::Array2D<InternalDataType>& slice);
+
+        // Get length of given side of n-dimensional data array
+        size_t GetDataLength(const int dim) const {
+            return (dim > m_NumberOfSteps.GetSize()) ? 0 : m_NumberOfSteps[dim] * 2 + 1;
+        }
 
         itkGetConstReferenceMacro(Dimension, size_t);
         itkGetConstReferenceMacro(StepSize, StepsSizeType);
@@ -61,13 +70,20 @@ namespace itk
         itkGetConstReferenceMacro(DataSize, itk::SizeValueType);
         itkGetMacro(Data, InternalDataType*);
 
-        const StepsType& GetIndexFromPosition(const StepsSizeType position);
-
     protected:
         CommandExhaustiveLog();
         ~CommandExhaustiveLog() override;
 
-        const size_t GetInternalIndex(const StepsSizeType& indices) const;      // Translate vector of indices into index for 1D data array
+    private:
+        // Set data at discrete index
+        void SetDataElement(const StepsType& indices, const InternalDataType& value);  
+
+        // Translate from image space into discrete nd array indices
+        const void GetNdIndexFromPosition(const StepsSizeType position, StepsType& ndIndex);  
+
+        // Translate vector of indices into index for 1D data array
+        const size_t GetInternalIndex(const StepsType& indices) const;      
+
     private:
         size_t m_Dimension;      // # of parameters in transform to vary
 
