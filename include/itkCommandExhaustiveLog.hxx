@@ -25,6 +25,7 @@
 #include "itkArray2D.h"
 #include "itkExhaustiveOptimizerv4.h"
 
+#include "itkNdArray.h"
 
 namespace itk
 {

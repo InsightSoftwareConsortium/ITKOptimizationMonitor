@@ -24,6 +24,8 @@
 #include "itkTransform.h"
 #include "itkExhaustiveOptimizerv4.h"
 
+#include "itkNdArray.h"
+
 namespace itk
 {
     template <typename TInternalData>

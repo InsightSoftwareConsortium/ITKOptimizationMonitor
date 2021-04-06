@@ -30,7 +30,7 @@
 #include "itkImageRegistrationMethodv4.h"
 #include "itkImage.h"
 
-int itkExhaustiveMonitorTest(int argc, char* argv[])
+int itkCommandExhaustiveLogTest(int argc, char* argv[])
 {
     // Derived from ExhaustiveOptimizer example documentation
     if (argc < 2)
