@@ -51,22 +51,29 @@ namespace itk
 
         void Initialize(const OptimizerType* optimizer);
 
+        void SetDataElement(const StepsSizeType& position, const InternalDataType& value); // TODO private?
+
         itkGetConstReferenceMacro(Dimension, size_t);
         itkGetConstReferenceMacro(StepSize, StepsSizeType);
         itkGetConstReferenceMacro(NumberOfSteps, StepsType);
-        itkGetConstReferenceMacro(Origin, StepsSizeType);
+        itkSetMacro(Center, StepsSizeType);
+        itkGetMacro(Center, StepsSizeType);
         itkGetConstReferenceMacro(DataSize, itk::SizeValueType);
         itkGetMacro(Data, InternalDataType*);
+
+        const StepsType& GetIndexFromPosition(const StepsSizeType position);
 
     protected:
         CommandExhaustiveLog();
         ~CommandExhaustiveLog() override;
+
+        const size_t GetInternalIndex(const StepsSizeType& indices) const;      // Translate vector of indices into index for 1D data array
     private:
         size_t m_Dimension;      // # of parameters in transform to vary
 
-        StepsSizeType m_StepSize; // size of a single step in a given dimension
-        StepsType m_NumberOfSteps; // number of steps to include in a given direction
-        StepsSizeType m_Origin;   // position of origin in array coordinates
+        StepsSizeType m_StepSize; // size of a single step in a given dimension; ex. {1, 5, 0.1}
+        StepsType m_NumberOfSteps; // number of steps to include in a given direction; ex. {10, 0, 5}
+        StepsSizeType m_Center;     // coordinates at center of optimization region; ex. (2.1, -1.05)
 
         itk::SizeValueType m_DataSize;    // Total number of elements in array
         InternalDataType* m_Data;     // n-dimensional array to store exhaustive values

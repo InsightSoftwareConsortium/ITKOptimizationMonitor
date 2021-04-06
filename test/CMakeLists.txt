@@ -9,6 +9,6 @@ CreateTestDriver(OptimizationMonitor "${OptimizationMonitor-Test_LIBRARIES}" "${
 # fixme
 itk_add_test(NAME itkExhaustiveMonitorTest
   COMMAND OptimizationMonitorTestDriver itkExhaustiveMonitorTest 
-  "C:/repos/ex-b/src/Numerics/Optimizers/ExhaustiveOptimizer/apple.jpg"
-  "C:/repos/ex-b/src/Numerics/Optimizers/ExhaustiveOptimizer/orange.jpg"
+  DATA{Input/apple.jpg}
+  DATA{Input/orange.jpg}
   )

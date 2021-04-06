@@ -31,28 +31,66 @@ namespace itk
     CommandExhaustiveLog<TInternalData>::CommandExhaustiveLog() = default;
 
     template <typename TInternalData>
-    CommandExhaustiveLog<TInternalData>::~CommandExhaustiveLog()
-    {
-        delete m_Data;  // TODO does default handle this?
-    }
+    CommandExhaustiveLog<TInternalData>::~CommandExhaustiveLog() = default;
 
     template <typename TInternalData>
     void 
-        CommandExhaustiveLog<TInternalData>::Initialize(const OptimizerType* optimizer) 
+        CommandExhaustiveLog<TInternalData>::Initialize(const OptimizerType* optimizer)
     {
         m_Dimension = optimizer->GetNumberOfSteps().GetSize();
 
         m_NumberOfSteps = optimizer->GetNumberOfSteps();
-        m_StepSize = optimizer->GetScales();    // TODO are scales == step size or inverted? check this math
+        m_StepSize = optimizer->GetScales();
         //m_Origin = itk::Array<TInternalData>(0); // TODO set origin location in data
 
         // Compute the size of the data array and initialize
         unsigned int elementCount = 1;
         for (auto stepCount : m_NumberOfSteps) {
-            elementCount *= (stepCount + 1);
+            elementCount *= (stepCount * 2 + 1);
         }
         m_DataSize = elementCount;
-        m_Data = new TInternalData[elementCount];
+        m_Data = new TInternalData[elementCount]();
+
+    }
+
+    template <typename TInternalData>
+    void
+        CommandExhaustiveLog<TInternalData>::SetDataElement(const StepsSizeType& position, const InternalDataType& value) 
+    {
+        auto dataIndex = GetInternalIndex(position);
+        m_Data[dataIndex] = value;
+    }
+    template <typename TInternalData>
+    const typename CommandExhaustiveLog<TInternalData>::StepsType&
+        CommandExhaustiveLog<TInternalData>::GetIndexFromPosition(const StepsSizeType position) {
+        // TODO account for bad positions, division by zero, etc
+        StepsType indices;
+        indices.SetSize(m_Dimension);
+
+        for (unsigned int i = 0; i < position.GetSize(); i++) {
+            std::cout << position.GetSize() << m_Center.GetSize() << m_StepSize.GetSize() << m_NumberOfSteps.GetSize();
+            indices.SetElement(i, (position.GetElement(i) - m_Center.GetElement(i)) / m_StepSize.GetElement(i) + m_NumberOfSteps.GetElement(i));
+        }
+
+        return indices;
+    }
+
+    // An n-dimensional array of size n1 x n2 x ... x ni
+    // accessed at position [a1][a2]...[ai]
+    // can be represented as a 1D array of length n1 * n2 * ... * ni
+    // accessed at position ai + a(i-1) * ni + a(i-2) * ni * n(i-1) + ... + a1 * [ni * n(i-1) * ... * n2]
+    template <typename TInternalData>
+    const size_t
+        CommandExhaustiveLog<TInternalData>::GetInternalIndex(const StepsSizeType& position) const {
+        size_t area = 1;
+        size_t dataIndex = 0;
+
+        for (int idx = position.GetSize() - 1; idx >= 0; idx--) {
+            dataIndex += position.GetElement(idx) * area;
+            area *= (this->GetNumberOfSteps().GetElement(idx) + 1);
+        }
+
+        return dataIndex;
     }
 
     template <typename TInternalData>
@@ -67,7 +105,7 @@ namespace itk
         CommandExhaustiveLog<TInternalData>::Execute(const itk::Object* caller, const itk::EventObject& event)
     {
         // Do nothing if event is not recognized
-        if (!itk::StartEvent().CheckEvent(&event) && !itk::ProgressEvent().CheckEvent(&event))
+        if (!itk::StartEvent().CheckEvent(&event) && !itk::IterationEvent().CheckEvent(&event))
         {
             return;
         }
@@ -80,12 +118,14 @@ namespace itk
             }
 
             if (itk::StartEvent().CheckEvent(&event)) {
+                // Initialize at start via optimizer parameters
                 Initialize(optimizer);
             }
             else {
-                //FIXME
+                // Update iteration value
                 OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
-                OptimizerType::MeasureType measure = optimizer->GetCurrentValue();
+                OptimizerType::MeasureType value = optimizer->GetCurrentValue();
+                SetDataElement(index, value);
             }
         }
     }

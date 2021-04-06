@@ -66,21 +66,14 @@ int itkExhaustiveMonitorTest(int argc, char* argv[])
     movingImageReader->Update();
     movingImage = movingImageReader->GetOutput();
 
-    // Create the Command observer and register it with the optimizer.
-    //
-    itk::CommandExhaustiveLog<double>::Pointer observer = itk::CommandExhaustiveLog<double>::New();
-    optimizer->AddObserver(itk::StartEvent(), observer);
-    optimizer->AddObserver(itk::IterationEvent(), observer);
-
-    unsigned int             angles = 12;
     OptimizerType::StepsType steps(transform->GetNumberOfParameters());
-    steps[0] = int(angles / 2);
-    steps[1] = 0;
-    steps[2] = 0;
+    steps[0] = 10;
+    steps[1] = 10;
+    steps[2] = 1;
     optimizer->SetNumberOfSteps(steps);
 
     OptimizerType::ScalesType scales(transform->GetNumberOfParameters());
-    scales[0] = 2.0 * itk::Math::pi / angles;
+    scales[0] = 0.1;
     scales[1] = 1.0;
     scales[2] = 1.0;
 
@@ -98,9 +91,23 @@ int itkExhaustiveMonitorTest(int argc, char* argv[])
     registration->SetMovingImage(movingImage);
     registration->SetInitialTransform(transform);
     registration->SetNumberOfLevels(1);
+
+    // Create the Command observer and register it with the optimizer.
+    //
+    itk::CommandExhaustiveLog<double>::Pointer observer = itk::CommandExhaustiveLog<double>::New();
+    observer->SetCenter(transform->GetParameters());
+    optimizer->AddObserver(itk::StartEvent(), observer);
+    optimizer->AddObserver(itk::IterationEvent(), observer);
+
     try
     {
-        registration->Update();
+        registration->Update(); 
+        std::cout << "  MinimumMetricValue: " << optimizer->GetMinimumMetricValue() << std::endl;
+        std::cout << "  MaximumMetricValue: " << optimizer->GetMaximumMetricValue() << std::endl;
+        std::cout << "  MinimumMetricValuePosition: " << optimizer->GetMinimumMetricValuePosition() << std::endl;
+        std::cout << "  MaximumMetricValuePosition: " << optimizer->GetMaximumMetricValuePosition() << std::endl;
+        std::cout << "  StopConditionDescription: " << optimizer->GetStopConditionDescription() << std::endl;
+
     }
     catch (itk::ExceptionObject& err)
     {
@@ -109,10 +116,31 @@ int itkExhaustiveMonitorTest(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::cout << "Got dimension " << observer->GetDimension() << std::endl;
-    std::cout << "Got number of steps 0 " << observer->GetNumberOfSteps()[0] << std::endl;
-    std::cout << "Got step size 0 " << observer->GetStepSize()[0] << std::endl;
-    std::cout << "Got " << observer->GetDataSize() << " data elements " << std::endl;
+    ITK_TEST_EXPECT_EQUAL(observer->GetDimension(), 3);
+
+    ITK_TEST_EXPECT_EQUAL(observer->GetNumberOfSteps()[0], 10);
+    ITK_TEST_EXPECT_EQUAL(observer->GetNumberOfSteps()[1], 10);
+    ITK_TEST_EXPECT_EQUAL(observer->GetNumberOfSteps()[2], 1);
+
+    ITK_TEST_EXPECT_EQUAL(observer->GetStepSize()[0], 0.1);
+    ITK_TEST_EXPECT_EQUAL(observer->GetStepSize()[1], 1.0);
+    ITK_TEST_EXPECT_EQUAL(observer->GetStepSize()[2], 1.0);
+
+    ITK_TEST_EXPECT_EQUAL(observer->GetDataSize(), 1323);
+
+
+    std::cout << "Data: " << std::endl;
+    std::cout << observer->GetData()[0] << std::endl;
+    std::cout << observer->GetData()[1] << std::endl;
+    std::cout << observer->GetData()[2] << std::endl;
+    std::cout << observer->GetData()[3] << std::endl;
+
+    itk::Array<double> args;
+    args.SetSize(3);
+    args.SetElement(0, 0.6);
+    args.SetElement(1, 1);
+    args.SetElement(2, 0);
+    std::cout << observer->GetIndexFromPosition(args) << std::endl;
 
     return EXIT_SUCCESS;
 }
