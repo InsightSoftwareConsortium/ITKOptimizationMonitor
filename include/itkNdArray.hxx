@@ -23,13 +23,26 @@
 
 namespace itk
 {
-    // TODO overload constructor to call Initialize()
     template <typename TInternalData>
-    NdArray<TInternalData>::NdArray() = default;
+    NdArray<TInternalData>::NdArray()
+    {
+        m_Dimension = 0;
+        m_DataSize = 0;
+        m_DataLength = LengthType();
+        m_Data = nullptr;
+    };
+
+    template <typename TInternalData>
+    NdArray<TInternalData>::NdArray(const LengthType& arrayDimensions)
+    {
+        Initialize(arrayDimensions);
+    }
 
     template <typename TInternalData>
     NdArray<TInternalData>::~NdArray() = default;
 
+    /** Allow array to be re-initialized at any time. 
+     * Previous memory allocation and any data contained therein are discarded. */
     template <typename TInternalData>
     void
         NdArray<TInternalData>::Initialize(const LengthType& arrayDimensions) 
@@ -43,6 +56,11 @@ namespace itk
             arraySize *= arrayDimensions[dim];
         }
         m_DataSize = arraySize;
+
+        // Deallocate memory if previously initialized
+        if (m_Data) {
+            delete m_Data;
+        }
 
         m_Data = new InternalDataType[m_DataSize]();
     };
@@ -64,12 +82,13 @@ namespace itk
     };
 
 
-    // An n-dimensional array of size n1 x n2 x ... x ni
-    // accessed at position [a1][a2]...[ai]
-    // can be represented as a 1D array of length n1 * n2 * ... * ni
-    // accessed at position ai + a(i-1) * ni + a(i-2) * ni * n(i-1) + ... + a1 * [ni * n(i-1) * ... * n2]
+    /** An n-dimensional array of size n1 x n2 x ... x ni
+     *  accessed at position [a1][a2]...[ai]
+     * can be represented as a 1D array of length n1 * n2 * ... * ni
+     * accessed at position ai + a(i-1) * ni + a(i-2) * ni * n(i-1) + ... + a1 * [ni * n(i-1) * ... * n2]
+     */
     template <typename TInternalData>
-    itk::SizeValueType
+    typename itk::SizeValueType
         NdArray<TInternalData>::Get1DIndexFromIndexList(const LengthType& ndIndex) const
     {
         SizeValueType area = 1;

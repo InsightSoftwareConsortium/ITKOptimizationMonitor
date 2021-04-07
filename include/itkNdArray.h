@@ -26,6 +26,24 @@
 
 namespace itk
 {
+    /**
+     *\class NdArray
+     *  \brief N-dimensional array class with size defined at construction time.
+     *
+     * This class derives from the LightObject class.
+     * Its size is assigned at construction time (run time) and can
+     * not be changed afterwards.
+     * 
+     * Elements in the array are accessed externally with a list of parameters
+     * corresponding to the desired index along each dimension.
+     *
+     * The class is templated over the type of the elements.
+     *
+     * Template parameters for class NdArray:
+     *
+     * - TInternalData = Element type stored at each location in the array.
+     *
+     */
     template <typename TInternalData>
     class NdArray : public itk::LightObject
     {
@@ -35,8 +53,11 @@ namespace itk
         using Pointer = itk::SmartPointer<Self>;
         itkNewMacro(Self);
 
+        /** The element type stored at each location in the NdArray. */
         using InternalDataType = TInternalData;
 
+        /** List of whole number values for properties such as 
+         *  array side lengths and index accessor values. */
         using LengthType = itk::Array<itk::SizeValueType>;
 
         itkGetConstReferenceMacro(Dimension, itk::SizeValueType);
@@ -44,14 +65,22 @@ namespace itk
         itkGetConstReferenceMacro(DataLength, LengthType);
         itkGetMacro(Data, InternalDataType*);   // TODO make const
 
-        // Initialize array in memory
+        /** Destructively initialize the array to the given dimensions. */
         void Initialize(const LengthType& arrayDimensions);
 
+        /** Set value at the given index of n dimension. */
         void SetElement(const LengthType& ndIndex, InternalDataType value);
+
+        /** Retrieve value at the given index of n dimension. */
         InternalDataType GetElement(const LengthType& ndIndex) const;
 
     protected:
+        /** Default constructor creates empty 0-d array and must be
+         * manually initialized  later. */
         NdArray();
+        /** Overloaded constructor initializes n-d array from given side lengths. */
+        NdArray(const LengthType& arrayDimensions);
+        /** Default destructor. */
         ~NdArray() override;
 
     private:

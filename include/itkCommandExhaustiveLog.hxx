@@ -109,8 +109,6 @@ namespace itk
     }
 
 
-
-    // TODO
     // Copy fragmented data across dimensions into a single contiguous array
     template <typename TInternalData>
     void 
@@ -118,17 +116,19 @@ namespace itk
             const std::vector<bool>& dimIsVariable, 
             itk::Array2D<InternalDataType>& slice)
     {
+        // Make a local copy of position that can vary over the array
         PositionType pos;
         pos.SetSize(position.GetSize());
 
+        // Get indices of dimensions to vary over the slice
         std::vector<int> variableDims;
         for (int i = 0; i < dimIsVariable.size(); i++) {
             if (dimIsVariable[i]) {
                 variableDims.push_back(i);
-                pos[i] = m_Center[i];
+                pos[i] = GetAnchor()[i]; // Initialize at first element
             }
             else {
-                pos[i] = position[i];
+                pos[i] = position[i];    // Fix at given element
             }
         }
 
@@ -145,21 +145,15 @@ namespace itk
         size_t colLength = GetDataLength(colDim);
         slice.SetSize(rowLength, colLength);
 
-        // Iteratively update output
-        // TODO update position rather than ndIndex
-        //FIXME
-        /*for (int r = 0; r < rowLength; r++) {
+        // Walk through the data array and copy values into the slice
+        for (int r = 0; r < rowLength; r++) {
             for (int c = 0; c < colLength; c++) {
-                LengthType ndIndex;
-                GetNdIndexFromPosition(pos, ndIndex);
+                pos[rowDim] = GetAnchor()[rowDim] + r * GetStepSize()[rowDim];
+                pos[colDim] = GetAnchor()[colDim] + c * GetStepSize()[colDim];
 
-                ndIndex[rowDim] = r;
-                ndIndex[colDim] = c;
-
-                int dataIndex = GetInternalIndex(ndIndex);
-                slice.SetElement(r, c, m_Data[dataIndex]);
+                slice.SetElement(r, c, GetDataAtPosition(pos));
             }
-        }*/
+        }
     }
 
 

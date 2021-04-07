@@ -24,6 +24,26 @@
 
 namespace itk
 {
+    /**
+     *\class SpacedNdArray
+     *  \brief N-dimensional class with data spacing.
+     *
+     * This class extends the NdArray class to define array access at
+     * discrete rational numbers. The first element in the array is "anchored"
+     * at a given point in space and access to subsequent elements are defined
+     * via whole number multiples of fixed step size. 
+     *
+     * Elements in the array are accessed externally with a list of parameters
+     * corresponding to the desired discrete position in space. Indices must
+     * precisely correspond to a discrete index position for access to succeed.
+     *
+     * The class is templated over the type of the elements.
+     *
+     * Template parameters for class SpacedNdArray:
+     *
+     * - TInternalData = Element type stored at each location in the array.
+     *
+     */
     template <typename TInternalData>
     class SpacedNdArray : public itk::NdArray<TInternalData>
     {
@@ -33,30 +53,51 @@ namespace itk
         using Pointer = itk::SmartPointer<Self>;
         itkNewMacro(Self);
 
+        /** The element type stored at each location in the NdArray. */
         using InternalDataType = Superclass::InternalDataType;
 
+        /** List of whole number values for properties such as
+         *  array side lengths. */
         using LengthType = Superclass::LengthType;
+
+        /** List of rational number values for properties such as
+         *  position accessor values. */
         using PositionType = itk::Array<double>;
 
         itkGetConstReferenceMacro(StepSize, PositionType);
         itkGetConstReferenceMacro(Anchor, PositionType);
 
-        // Initialize array in memory
+        /** Destructively initialize the array to the given dimensions. */
         void Initialize(const LengthType& arrayDimensions,
             const PositionType& stepSize,
             const PositionType& anchor);
 
+        /** Check whether a given position is a valid accessor for the array.
+         *  The discrete set of valid array accessors is defined as those
+         *  corresponding to steps between the minimum and maximum array values, 
+         *  i.e. S = {a[i] + n * d[i] for 0 <= n < steps[i] for 0 <= i <= length[i]}
+         */
         bool IsValidPosition(const PositionType& position) const;
 
+        /** Set value at the given position of n dimension. */
         void SetElement(const PositionType& position, const InternalDataType value);
+
+        /** Retrieve value at the given index of n dimension. */
         InternalDataType GetElement(const PositionType& position) const;
 
     protected:
+        /** Default constructor creates empty 0-d array and must be
+         * manually initialized  later. */
         SpacedNdArray();
+        /** Overloaded constructor initializes n-d array from given side lengths. */
+        SpacedNdArray(const LengthType& arrayDimensions,
+            const PositionType& stepSize,
+            const PositionType& anchor);
+        /** Default destructor. */
         ~SpacedNdArray() override;
 
     private:
-        void GetDiscreteIndexFromPosition(const PositionType& position, LengthType& index) const;
+        void GetNdArrayIndexFromPosition(const PositionType& position, LengthType& index) const;
 
     private:
         PositionType m_StepSize;

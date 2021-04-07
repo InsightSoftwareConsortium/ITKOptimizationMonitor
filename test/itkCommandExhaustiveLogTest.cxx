@@ -180,31 +180,34 @@ int itkCommandExhaustiveLogTest(int argc, char* argv[])
     ITK_TEST_EXPECT_EQUAL(optimizer->GetMaximumMetricValue(), observer->GetDataAtPosition(position));
 
     // Get a 2D data slice
-    //const int FIXED_POSITION_0 = 0.2;
-    //std::vector<bool> dimIsVariable;
-    //dimIsVariable.push_back(false);
-    //position[0] = FIXED_POSITION_0;
-    //dimIsVariable.push_back(true);
-    //dimIsVariable.push_back(true);
+    const double FIXED_POSITION_0 = 0.6;
+    std::vector<bool> dimIsVariable;
+    dimIsVariable.push_back(false);
+    position[0] = FIXED_POSITION_0;
+    dimIsVariable.push_back(true);
+    dimIsVariable.push_back(true);
 
-    //itk::Array2D<double> arr;
-    //observer->GetDataSlice2D(position, dimIsVariable, arr);
+    itk::Array2D<double> arr;
+    observer->GetDataSlice2D(position, dimIsVariable, arr);
 
-    //// Verify slice size matches expectation
-    //size_t expectedSize = (observer->GetDataLength(1) * observer->GetDataLength(2));
-    //ITK_TEST_EXPECT_EQUAL(arr.size(), expectedSize);
+    // Verify slice size matches expectation
+    size_t expectedSize = (observer->GetDataLength(1) * observer->GetDataLength(2));
+    ITK_TEST_EXPECT_EQUAL(arr.size(), expectedSize);
 
-    //// Verify slice elements match respective positions in observer data array
-    //for (int i = 0; i < observer->GetDataLength(1); i++) {
-    //    for (int j = 0; j < observer->GetDataLength(2); j++) {
-    //        position[0] = FIXED_POSITION_0;
-    //        position[1] = i - steps[1] * scales[1];
-    //        position[2] = j - steps[2] * scales[2];
-    //        int origVal = observer->GetDataAtPosition(position);
-    //        int sliceVal = arr.GetElement(i, j);
-    //        ITK_TEST_EXPECT_EQUAL(origVal, sliceVal);
-    //    }
-    //}
+    // Verify known maximum is at expected location in the slice
+    ITK_TEST_EXPECT_EQUAL(optimizer->GetMaximumMetricValue(), arr.GetElement(20, 0));
+
+    // Verify slice elements match respective positions in observer data 
+    int rowSteps = steps[1];
+    int colSteps = steps[2];
+    for (int i = -1 * rowSteps; i <= rowSteps; i++) {
+        for (int j = -1 * colSteps ; j <= colSteps; j++) {
+            position[0] = FIXED_POSITION_0;
+            position[1] = observer->GetCenter()[1] + i * scales[1];
+            position[2] = observer->GetCenter()[2] + j * scales[2];
+            ITK_TEST_EXPECT_EQUAL(observer->GetDataAtPosition(position), arr.GetElement(i + rowSteps, j + colSteps));
+        }
+    }
 
     return EXIT_SUCCESS;
 }

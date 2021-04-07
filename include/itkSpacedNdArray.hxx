@@ -26,9 +26,16 @@
 
 namespace itk
 {
-    // TODO overload constructor to call Initialize()
     template <typename TInternalData>
     SpacedNdArray<TInternalData>::SpacedNdArray() = default;
+
+    template <typename TInternalData>
+    SpacedNdArray<TInternalData>::SpacedNdArray(const LengthType& arrayDimensions,
+        const PositionType& stepSize,
+        const PositionType& anchor)
+    {
+        Initialize(arrayDimensions, stepSize, anchor);
+    }
 
     template <typename TInternalData>
     SpacedNdArray<TInternalData>::~SpacedNdArray() = default;
@@ -83,7 +90,7 @@ namespace itk
         SpacedNdArray<TInternalData>::SetElement(const PositionType& position, const InternalDataType value)
     {
         LengthType arrayIndex;
-        GetDiscreteIndexFromPosition(position, arrayIndex);
+        GetNdArrayIndexFromPosition(position, arrayIndex);
 
         if (arrayIndex.Size() != 0) {
             Superclass::SetElement(arrayIndex, value);
@@ -99,7 +106,7 @@ namespace itk
         SpacedNdArray<TInternalData>::GetElement(const PositionType& position) const
     {
         LengthType arrayIndex;
-        GetDiscreteIndexFromPosition(position, arrayIndex);
+        GetNdArrayIndexFromPosition(position, arrayIndex);
 
         if (arrayIndex.Size() != 0) {
             return Superclass::GetElement(arrayIndex);
@@ -111,7 +118,7 @@ namespace itk
 
     template <typename TInternalData>
     void
-        SpacedNdArray<TInternalData>::GetDiscreteIndexFromPosition(const PositionType& position, LengthType& index) const
+        SpacedNdArray<TInternalData>::GetNdArrayIndexFromPosition(const PositionType& position, LengthType& index) const
     {
         if (!IsValidPosition(position)) return;
 
