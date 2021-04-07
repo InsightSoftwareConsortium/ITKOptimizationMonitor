@@ -54,7 +54,7 @@ namespace itk
     };
 
     template <typename TInternalData>
-    typename NdArray<TInternalData>::InternalDataType&
+    typename NdArray<TInternalData>::InternalDataType
         NdArray<TInternalData>::GetElement(const LengthType& ndIndex) const
     {
         SizeValueType dataIndex = Get1DIndexFromIndexList(ndIndex);

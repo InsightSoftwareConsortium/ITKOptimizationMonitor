@@ -24,7 +24,7 @@
 #include "itkTransform.h"
 #include "itkExhaustiveOptimizerv4.h"
 
-#include "itkNdArray.h"
+#include "itkSpacedNdArray.h"
 
 namespace itk
 {
@@ -44,6 +44,10 @@ namespace itk
         using OptimizerType = itk::ExhaustiveOptimizerv4<double>;
         // TODO extend for other optimizers with a fill value
         //using constexpr FillValue = 0;
+
+        using ArrayType = itk::SpacedNdArray<InternalDataType>; // n-dimensional array with positional aliases for indices
+        using LengthType = ArrayType::LengthType;
+        using PositionType = ArrayType::PositionType;
 
         using StepsSizeType = itk::Array<InternalDataType>; // compatible with floating point positions
         using StepsType = Array<SizeValueType>;             // integer-valued array indices

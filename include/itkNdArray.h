@@ -48,7 +48,7 @@ namespace itk
         void Initialize(const LengthType& arrayDimensions);
 
         void SetElement(const LengthType& ndIndex, InternalDataType value);
-        InternalDataType& GetElement(const LengthType& ndIndex) const;
+        InternalDataType GetElement(const LengthType& ndIndex) const;
 
     protected:
         NdArray();
@@ -57,7 +57,7 @@ namespace itk
     private:
         itk::SizeValueType Get1DIndexFromIndexList(const LengthType& ndIndex) const;
 
-    private:
+    protected:
         itk::SizeValueType m_Dimension;     // Number of array dimensions
         itk::SizeValueType m_DataSize;    // Total number of elements in array
         LengthType m_DataLength;        // Length of each array dimension
