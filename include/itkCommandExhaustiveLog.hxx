@@ -30,7 +30,10 @@
 namespace itk
 {
     template <typename TInternalData>
-    CommandExhaustiveLog<TInternalData>::CommandExhaustiveLog() = default;
+    CommandExhaustiveLog<TInternalData>::CommandExhaustiveLog()
+    {
+        m_DataArray = ArrayType::New();
+    };
 
     template <typename TInternalData>
     CommandExhaustiveLog<TInternalData>::~CommandExhaustiveLog() = default;
@@ -66,9 +69,9 @@ namespace itk
             }
             else {
                 // Update iteration value
-                OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
+                OptimizerType::ParametersType position = optimizer->GetCurrentPosition();
                 OptimizerType::MeasureType value = optimizer->GetCurrentValue();
-                SetDataElement(index, value);
+                SetDataElement(position, value);
             }
         }
     }
@@ -78,41 +81,44 @@ namespace itk
     void
         CommandExhaustiveLog<TInternalData>::Initialize(const OptimizerType* optimizer)
     {
-        m_Dimension = optimizer->GetNumberOfSteps().GetSize();
-        m_NumberOfSteps = optimizer->GetNumberOfSteps();
-        m_StepSize = optimizer->GetScales();
-        //m_Origin = itk::Array<TInternalData>(0); // TODO set origin location in data
+        if (m_Center.GetSize() == 0) itkExceptionMacro(<< "Cannot initialize before origin is set!");
 
-        // Compute the size of the data array and initialize
-        unsigned int elementCount = GetDataLength(0);
-        for (unsigned int dim = 1; dim < m_Dimension; dim++) {
-            elementCount *= GetDataLength(dim);
+        int Dimension = m_Center.GetSize();
+
+        LengthType arrayLengths;
+        PositionType arraySteps, anchorPosition;
+        arrayLengths.SetSize(Dimension);
+        arraySteps.SetSize(Dimension);
+        anchorPosition.SetSize(Dimension);
+
+        for (int dim = 0; dim < Dimension; dim++) {
+            auto steps = optimizer->GetNumberOfSteps();
+            arrayLengths[dim] = steps[dim] * 2 + 1;
+            arraySteps[dim] = optimizer->GetScales()[dim];
+            anchorPosition[dim] = (m_Center[dim] - optimizer->GetNumberOfSteps()[dim] * arraySteps[dim]);
         }
-        m_DataSize = elementCount;
-        m_Data = new TInternalData[elementCount]();
+
+        m_DataArray->Initialize(arrayLengths, arraySteps, anchorPosition);
     }
 
     template <typename TInternalData>
     TInternalData
-        CommandExhaustiveLog<TInternalData>::GetDataAtPosition(const StepsSizeType& position)
+        CommandExhaustiveLog<TInternalData>::GetDataAtPosition(const PositionType& position)
     {
-        StepsType ndIndex;
-        GetNdIndexFromPosition(position, ndIndex);
-        auto internalIndex = GetInternalIndex(ndIndex);
-
-        return m_Data[internalIndex];
+        return m_DataArray->GetElement(position);
     }
 
 
 
+    // TODO
     // Copy fragmented data across dimensions into a single contiguous array
     template <typename TInternalData>
     void 
-        CommandExhaustiveLog<TInternalData>::GetDataSlice2D(const StepsSizeType& position, 
+        CommandExhaustiveLog<TInternalData>::GetDataSlice2D(const PositionType& position, 
             const std::vector<bool>& dimIsVariable, 
             itk::Array2D<InternalDataType>& slice)
     {
-        StepsSizeType pos;
+        PositionType pos;
         pos.SetSize(position.GetSize());
 
         std::vector<int> variableDims;
@@ -141,9 +147,10 @@ namespace itk
 
         // Iteratively update output
         // TODO update position rather than ndIndex
-        for (int r = 0; r < rowLength; r++) {
+        //FIXME
+        /*for (int r = 0; r < rowLength; r++) {
             for (int c = 0; c < colLength; c++) {
-                StepsType ndIndex;
+                LengthType ndIndex;
                 GetNdIndexFromPosition(pos, ndIndex);
 
                 ndIndex[rowDim] = r;
@@ -152,76 +159,75 @@ namespace itk
                 int dataIndex = GetInternalIndex(ndIndex);
                 slice.SetElement(r, c, m_Data[dataIndex]);
             }
-        }
+        }*/
     }
 
 
 
     template <typename TInternalData>
     void
-        CommandExhaustiveLog<TInternalData>::SetDataElement(const StepsType& indices, const InternalDataType& value)
+        CommandExhaustiveLog<TInternalData>::SetDataElement(const PositionType& position, const InternalDataType& value)
     {
-        auto dataIndex = GetInternalIndex(indices);
-        m_Data[dataIndex] = value;
+        m_DataArray->SetElement(position, value);
     }
 
-    template <typename TInternalData>
-    const void
-        CommandExhaustiveLog<TInternalData>::GetNdIndexFromPosition(const StepsSizeType position, StepsType& ndIndex) {
+    //template <typename TInternalData>
+    //const void
+    //    CommandExhaustiveLog<TInternalData>::GetNdIndexFromPosition(const PositionType& position, LengthType& ndIndex) {
 
-        // Verify position is of same dimension as data
-        if (position.GetSize() != m_Dimension) {
-            itkExceptionMacro(<< "Attempted to access data of dimension " << m_Dimension << " at " << position.GetSize() << "D location");
-        }
+    //    // Verify position is of same dimension as data
+    //    if (position.GetSize() != m_Dimension) {
+    //        itkExceptionMacro(<< "Attempted to access data of dimension " << m_Dimension << " at " << position.GetSize() << "D location");
+    //    }
 
-        // Verify center is initialized (must be set prior to Initialize() call)
-        if (m_Center.GetSize() != m_Dimension) {
-            itkExceptionMacro(<< "Could not get nd index because data center is not initialized!");
+    //    // Verify center is initialized (must be set prior to Initialize() call)
+    //    if (m_Center.GetSize() != m_Dimension) {
+    //        itkExceptionMacro(<< "Could not get nd index because data center is not initialized!");
 
-        }
+    //    }
 
-        // Verify step size is positive to guard against divide-by-zero errors
-        for (auto stepSize : m_StepSize) {
-            if (stepSize <= 0) {
-                itkExceptionMacro(<< "At least one step size is not positive");
-            }
-        }
+    //    // Verify step size is positive to guard against divide-by-zero errors
+    //    for (auto stepSize : m_StepSize) {
+    //        if (stepSize <= 0) {
+    //            itkExceptionMacro(<< "At least one step size is not positive");
+    //        }
+    //    }
 
-        // Get index in nth dimension as n[i] + (x[i] - c[i]) / d[i]
-        ndIndex.SetSize(m_Dimension);
-        for (unsigned int i = 0; i < position.GetSize(); i++) {
-            ndIndex.SetElement(i, (position[i] - m_Center[i]) / m_StepSize[i] + m_NumberOfSteps[i]);
-        }
-    }
+    //    // Get index in nth dimension as n[i] + (x[i] - c[i]) / d[i]
+    //    ndIndex.SetSize(m_Dimension);
+    //    for (unsigned int i = 0; i < position.GetSize(); i++) {
+    //        ndIndex.SetElement(i, (position[i] - m_Center[i]) / m_StepSize[i] + m_NumberOfSteps[i]);
+    //    }
+    //}
 
-    // An n-dimensional array of size n1 x n2 x ... x ni
-    // accessed at position [a1][a2]...[ai]
-    // can be represented as a 1D array of length n1 * n2 * ... * ni
-    // accessed at position ai + a(i-1) * ni + a(i-2) * ni * n(i-1) + ... + a1 * [ni * n(i-1) * ... * n2]
-    template <typename TInternalData>
-    const size_t
-        CommandExhaustiveLog<TInternalData>::GetInternalIndex(const StepsType& ndIndex) const {
-        size_t area = 1;
-        size_t dataIndex = 0;
+    //// An n-dimensional array of size n1 x n2 x ... x ni
+    //// accessed at position [a1][a2]...[ai]
+    //// can be represented as a 1D array of length n1 * n2 * ... * ni
+    //// accessed at position ai + a(i-1) * ni + a(i-2) * ni * n(i-1) + ... + a1 * [ni * n(i-1) * ... * n2]
+    //template <typename TInternalData>
+    //const size_t
+    //    CommandExhaustiveLog<TInternalData>::GetInternalIndex(const LengthType& ndIndex) const {
+    //    size_t area = 1;
+    //    size_t dataIndex = 0;
 
-        for (int idx = ndIndex.GetSize() - 1; idx >= 0; idx--) 
-        {
-            // Verify steps are within bounds
-            if (ndIndex[idx] < GetDataLength(idx)) 
-            {
-                // Update index into 1D data array
-                dataIndex += ndIndex[idx] * area;
-                // Update multiplier for next term
-                area *= (m_NumberOfSteps[idx] * 2 + 1);
-            }
-            else 
-            {
-                itkExceptionMacro(<< " attempted to access data outside the exhaustive region!");
-            }
-        }
+    //    for (int idx = ndIndex.GetSize() - 1; idx >= 0; idx--) 
+    //    {
+    //        // Verify steps are within bounds
+    //        if (ndIndex[idx] < GetDataLength(idx)) 
+    //        {
+    //            // Update index into 1D data array
+    //            dataIndex += ndIndex[idx] * area;
+    //            // Update multiplier for next term
+    //            area *= (m_NumberOfSteps[idx] * 2 + 1);
+    //        }
+    //        else 
+    //        {
+    //            itkExceptionMacro(<< " attempted to access data outside the exhaustive region!");
+    //        }
+    //    }
 
-        return dataIndex;
-    }
+    //    return dataIndex;
+    //}
 } // namespace
 
 #endif // itkCommandExhaustiveLog_hxx

@@ -19,6 +19,7 @@
 #ifndef itkNdArray_hxx
 #define itkNdArray_hxx
 
+#include "itkIntTypes.h"
 
 namespace itk
 {
@@ -34,6 +35,7 @@ namespace itk
         NdArray<TInternalData>::Initialize(const LengthType& arrayDimensions) 
     {
         m_Dimension = arrayDimensions.GetSize();
+        m_DataLength.SetSize(m_Dimension);
         m_DataLength = arrayDimensions;
         
         SizeValueType arraySize = arrayDimensions[0];

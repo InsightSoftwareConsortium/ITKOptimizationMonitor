@@ -46,11 +46,9 @@ namespace itk
         //using constexpr FillValue = 0;
 
         using ArrayType = itk::SpacedNdArray<InternalDataType>; // n-dimensional array with positional aliases for indices
-        using LengthType = ArrayType::LengthType;
-        using PositionType = ArrayType::PositionType;
-
-        using StepsSizeType = itk::Array<InternalDataType>; // compatible with floating point positions
-        using StepsType = Array<SizeValueType>;             // integer-valued array indices
+        using ArrayPointer = typename ArrayType::Pointer;
+        using LengthType = typename ArrayType::LengthType;
+        using PositionType = typename ArrayType::PositionType;
 
         void Execute(itk::Object* caller, const itk::EventObject& event) override;
 
@@ -58,23 +56,30 @@ namespace itk
 
         void Initialize(const OptimizerType* optimizer);
 
-        TInternalData GetDataAtPosition(const StepsSizeType& position);
+        TInternalData GetDataAtPosition(const PositionType& position);
 
+        // TODO
         // Get itk::Array as a copy of a slice of the collected data
-        void GetDataSlice2D(const StepsSizeType& position, const std::vector<bool>& dimIsVariable, itk::Array2D<InternalDataType>& slice);
+        void GetDataSlice2D(const PositionType& position, const std::vector<bool>& dimIsVariable, itk::Array2D<InternalDataType>& slice);
 
-        // Get length of given side of n-dimensional data array
-        size_t GetDataLength(const int dim) const {
-            return (dim > m_NumberOfSteps.GetSize()) ? 0 : m_NumberOfSteps[dim] * 2 + 1;
+        // TODO refactor to reference array
+        itkSetMacro(Center, PositionType);
+        itkGetMacro(Center, PositionType);
+
+        const ArrayType* GetData() const { return m_DataArray.Get(); }
+        const itk::SizeValueType GetDimension() const { return m_DataArray->GetDimension(); }
+        const itk::SizeValueType GetDataSize() const { return m_DataArray->GetDataSize(); }
+        const LengthType GetDataLength() const { return m_DataArray->GetDataLength(); }
+        const PositionType GetStepSize() const { return m_DataArray->GetStepSize(); }
+        const PositionType GetAnchor() const { return m_DataArray->GetAnchor(); }
+
+        itk::SizeValueType GetDataLength(const int dim) const {
+            return (dim < GetDimension()) ? GetDataLength()[dim] : 0;
         }
 
-        itkGetConstReferenceMacro(Dimension, size_t);
-        itkGetConstReferenceMacro(StepSize, StepsSizeType);
-        itkGetConstReferenceMacro(NumberOfSteps, StepsType);
-        itkSetMacro(Center, StepsSizeType);
-        itkGetMacro(Center, StepsSizeType);
-        itkGetConstReferenceMacro(DataSize, itk::SizeValueType);
-        itkGetMacro(Data, InternalDataType*);
+        itk::SizeValueType GetNumberOfSteps(const int dim) const {
+            return (dim < GetDimension()) ? ((GetDataLength()[dim] - 1) / 2) : 0;
+        }
 
     protected:
         CommandExhaustiveLog();
@@ -82,23 +87,19 @@ namespace itk
 
     private:
         // Set data at discrete index
-        void SetDataElement(const StepsType& indices, const InternalDataType& value);  
+        void SetDataElement(const PositionType& position, const InternalDataType& value);
 
-        // Translate from image space into discrete nd array indices
-        const void GetNdIndexFromPosition(const StepsSizeType position, StepsType& ndIndex);  
+        //// TODO
+        //// Translate from image space into discrete nd array indices
+        //const void GetNdIndexFromPosition(const PositionType& position, LengthType& ndIndex);
 
-        // Translate vector of indices into index for 1D data array
-        const size_t GetInternalIndex(const StepsType& indices) const;      
+        //// TODO
+        //// Translate vector of indices into index for 1D data array
+        //const size_t GetInternalIndex(const LengthType& indices) const;
 
     private:
-        size_t m_Dimension;      // # of parameters in transform to vary
-
-        StepsSizeType m_StepSize; // size of a single step in a given dimension; ex. {1, 5, 0.1}
-        StepsType m_NumberOfSteps; // number of steps to include in a given direction; ex. {10, 0, 5}
-        StepsSizeType m_Center;     // coordinates at center of optimization region; ex. (2.1, -1.05)
-
-        itk::SizeValueType m_DataSize;    // Total number of elements in array
-        InternalDataType* m_Data;     // n-dimensional array to store exhaustive values
+        PositionType m_Center;     // coordinates at center of optimization region; ex. (2.1, -1.05)
+        ArrayPointer m_DataArray;      // n-dimensional array with spacing to store exhaustive values
     };
 } // namespace
 

@@ -22,7 +22,7 @@
 #include <math.h>
 
 #include "itkSpacedNdArray.h"
-#include "itkMacro.h""
+#include "itkMacro.h"
 
 namespace itk
 {
@@ -60,9 +60,11 @@ namespace itk
         for (int i = 0; i < m_Dimension; i++) {
             // If the position is not a multiple of the step size in the given dimension then
             // it cannot be used to index into the array
-            if (fmod(position[i] - m_Anchor[i], m_StepSize[i]) != 0) {
+            // TODO fmod rounds denominator towards zero and gets num - i * denom, which returns an error for 0.1 / 0.1, etc
+            // find a better way to do this check
+            /*if (fmod(position[i] - m_Anchor[i], m_StepSize[i]) != 0) {
                 return false;
-            }
+            }*/
 
             // If the position is outside the bounded region then it cannot be used to index into the array
             if (position[i] < m_Anchor[i]) {
