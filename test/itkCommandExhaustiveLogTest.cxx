@@ -137,9 +137,9 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   ITK_TEST_EXPECT_EQUAL(observer->GetNumberOfSteps(1), 10);
   ITK_TEST_EXPECT_EQUAL(observer->GetNumberOfSteps(2), 1);
 
-  ITK_TEST_EXPECT_EQUAL(observer->GetDataSize(0), 21);
-  ITK_TEST_EXPECT_EQUAL(observer->GetDataSize(1), 21);
-  ITK_TEST_EXPECT_EQUAL(observer->GetDataSize(2), 3);
+  ITK_TEST_EXPECT_EQUAL(observer->GetSize(0), 21);
+  ITK_TEST_EXPECT_EQUAL(observer->GetSize(1), 21);
+  ITK_TEST_EXPECT_EQUAL(observer->GetSize(2), 3);
 
   ITK_TEST_EXPECT_EQUAL(observer->GetStepSize()[0], 0.1);
   ITK_TEST_EXPECT_EQUAL(observer->GetStepSize()[1], 1.0);
@@ -154,21 +154,21 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
 
   ObserverType::IndexType index;
   index.Fill(0);
-  ITK_TEST_EXPECT_EQUAL(observer->GetData(index), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(observer->GetValue(index), observer->GetValue(position));
 
   // Move one step in each dimension
 
   index[0] = 1;
   position[0] = -0.9;
-  ITK_TEST_EXPECT_EQUAL(observer->GetData(index), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(observer->GetValue(index), observer->GetValue(position));
 
   index[1] = 1;
   position[1] = -9;
-  ITK_TEST_EXPECT_EQUAL(observer->GetData(index), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(observer->GetValue(index), observer->GetValue(position));
 
   index[2] = 1;
   position[2] = 0;
-  ITK_TEST_EXPECT_EQUAL(observer->GetData(index), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(observer->GetValue(index), observer->GetValue(position));
 
   // Verify largest index is at maximum domain location value
   position[0] = 1;
@@ -177,23 +177,23 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   index[0] = 20;
   index[1] = 20;
   index[2] = 2;
-  ITK_TEST_EXPECT_EQUAL(observer->GetData(index), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(observer->GetValue(index), observer->GetValue(position));
 
   // Minimum position aligns with expectation
   position[0] = 0;
   position[1] = 0;
   position[2] = 1;
-  ITK_TEST_EXPECT_EQUAL(optimizer->GetMinimumMetricValue(), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(optimizer->GetMinimumMetricValue(), observer->GetValue(position));
 
   // Maximum position aligns with expectation
   position[0] = 0.6;
   position[1] = 10;
   position[2] = -1;
-  ITK_TEST_EXPECT_EQUAL(optimizer->GetMaximumMetricValue(), observer->GetData(position));
+  ITK_TEST_EXPECT_EQUAL(optimizer->GetMaximumMetricValue(), observer->GetValue(position));
 
 
   // Write out a 2D data slice for visualization and baseline comparison
-  ObserverType::ImagePointer image = observer->GetDataImage();
+  ObserverType::ImagePointer image = observer->GetImage();
 
   using InputImageType = typename ObserverType::ImageType;
   using OutputImageType = typename itk::Image<float, 2>;
@@ -203,7 +203,7 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
 
   FilterType::Pointer filter = FilterType::New();
 
-  filter->SetInput(observer->GetDataImage());
+  filter->SetInput(observer->GetImage());
   filter->SetDirectionCollapseToSubmatrix();
 
   // Get slice containing maximum position
@@ -211,9 +211,9 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   point[0] = 0.6;
   point[1] = 10;
   point[2] = -1;
-  index = observer->GetDataImage()->TransformPhysicalPointToIndex(point);
+  index = observer->GetImage()->TransformPhysicalPointToIndex(point);
 
-  InputRegionType desiredRegion = observer->GetDataImage()->GetBufferedRegion();
+  InputRegionType desiredRegion = observer->GetImage()->GetBufferedRegion();
   desiredRegion.GetModifiableSize()[2] = 0;         // Extract along third dimension
   desiredRegion.GetModifiableIndex()[0] = index[2]; // Fix 0th dimension coordinate
   ITK_TEST_EXPECT_EQUAL(desiredRegion.GetSize()[2], 0);

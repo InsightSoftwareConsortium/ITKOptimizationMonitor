@@ -26,27 +26,27 @@
 
 namespace itk
 {
-template <typename TInternalData, unsigned int TImageDimension>
-CommandExhaustiveLog<TInternalData, TImageDimension>::CommandExhaustiveLog()
+template <typename TValue, unsigned int TImageDimension>
+CommandExhaustiveLog<TValue, TImageDimension>::CommandExhaustiveLog()
 {
   m_Center = PointType();
   m_DataImage = nullptr;
 };
 
-template <typename TInternalData, unsigned int TImageDimension>
-CommandExhaustiveLog<TInternalData, TImageDimension>::~CommandExhaustiveLog() = default;
+template <typename TValue, unsigned int TImageDimension>
+CommandExhaustiveLog<TValue, TImageDimension>::~CommandExhaustiveLog() = default;
 
 
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 void
-CommandExhaustiveLog<TInternalData, TImageDimension>::Execute(itk::Object * caller, const itk::EventObject & event)
+CommandExhaustiveLog<TValue, TImageDimension>::Execute(itk::Object * caller, const itk::EventObject & event)
 {
   Execute((const itk::Object *)caller, event);
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 void
-CommandExhaustiveLog<TInternalData, TImageDimension>::Execute(const itk::Object *      caller,
+CommandExhaustiveLog<TValue, TImageDimension>::Execute(const itk::Object *      caller,
                                                               const itk::EventObject & event)
 {
   // Do nothing if event is not recognized
@@ -73,15 +73,15 @@ CommandExhaustiveLog<TInternalData, TImageDimension>::Execute(const itk::Object 
       // Update iteration value
       OptimizerType::ParametersType index = optimizer->GetCurrentIndex();
       OptimizerType::MeasureType    value = optimizer->GetCurrentValue();
-      SetData(index, value);
+      SetValue(index, value);
     }
   }
 }
 
 
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 void
-CommandExhaustiveLog<TInternalData, TImageDimension>::Initialize(const OptimizerType * optimizer)
+CommandExhaustiveLog<TValue, TImageDimension>::Initialize(const OptimizerType * optimizer)
 {
   SizeType    size;
   PointType   origin;
@@ -107,24 +107,24 @@ CommandExhaustiveLog<TInternalData, TImageDimension>::Initialize(const Optimizer
   m_DataImage->Allocate();
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
-const TInternalData
-CommandExhaustiveLog<TInternalData, TImageDimension>::GetData(const IndexType & index) const
+template <typename TValue, unsigned int TImageDimension>
+const TValue
+CommandExhaustiveLog<TValue, TImageDimension>::GetValue(const IndexType & index) const
 {
   return m_DataImage->GetPixel(index);
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
-const TInternalData
-CommandExhaustiveLog<TInternalData, TImageDimension>::GetData(const PointType & point) const
+template <typename TValue, unsigned int TImageDimension>
+const TValue
+CommandExhaustiveLog<TValue, TImageDimension>::GetValue(const PointType & point) const
 {
   IndexType index = m_DataImage->TransformPhysicalPointToIndex(point);
-  return GetData(index);
+  return GetValue(index);
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
-const TInternalData
-CommandExhaustiveLog<TInternalData, TImageDimension>::GetData(const ParametersType & parameters) const
+template <typename TValue, unsigned int TImageDimension>
+const TValue
+CommandExhaustiveLog<TValue, TImageDimension>::GetValue(const ParametersType & parameters) const
 {
   PointType point;
 
@@ -133,19 +133,19 @@ CommandExhaustiveLog<TInternalData, TImageDimension>::GetData(const ParametersTy
     point[dim] = parameters[dim];
   }
 
-  return GetData(point);
+  return GetValue(point);
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 void
-CommandExhaustiveLog<TInternalData, TImageDimension>::SetData(const IndexType & index, const InternalDataType & value)
+CommandExhaustiveLog<TValue, TImageDimension>::SetValue(const IndexType & index, const InternalDataType & value)
 {
   m_DataImage->SetPixel(index, value);
 }
 
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 void
-CommandExhaustiveLog<TInternalData, TImageDimension>::SetData(const ParametersType &   index,
+CommandExhaustiveLog<TValue, TImageDimension>::SetValue(const ParametersType &   index,
                                                               const InternalDataType & value)
 {
   IndexType baseIndex;
@@ -154,7 +154,7 @@ CommandExhaustiveLog<TInternalData, TImageDimension>::SetData(const ParametersTy
     baseIndex[i] = index[i];
   }
 
-  SetData(baseIndex, value);
+  SetValue(baseIndex, value);
 }
 
 } // namespace itk

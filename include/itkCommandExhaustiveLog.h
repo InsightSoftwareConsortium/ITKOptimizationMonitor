@@ -31,10 +31,10 @@ namespace itk
  *
  * This class is intended to assist a user in evaluating optimization performance
  * over some transform search space. An itk::CommandExhaustiveLog object may be added
- * to consume event data from an itk::ExhaustiveOptimizerv4 object as the optimizer 
- * iterates over a pre-set domain of transform parameters and returns a metric 
- * value at each point. The CommandExhaustiveLog observer object logs each 
- * data point internally in an itk::Image object so that the parametric surface 
+ * to consume event data from an itk::ExhaustiveOptimizerv4 object as the optimizer
+ * iterates over a pre-set domain of transform parameters and returns a metric
+ * value at each point. The CommandExhaustiveLog observer object logs each
+ * data point internally in an itk::Image object so that the parametric surface
  * is available after optimization concludes.
  *
  * A CommandExhaustiveLog object paired with an ExhaustiveOptimizerv4 may be
@@ -44,7 +44,7 @@ namespace itk
  * the performance of ongoing optimization, such as overlaying optimizer steps
  * onto an image of the exhaustive parametric region in order to determine whether
  * the optimizer learning rate is appropriate for the region.
- * 
+ *
  * Wrapping for this class is limited to available wrappings for the internal
  * itk::Image data array. Users wishing to make use of transforms with large
  * parameter lists may find it necessary to build ITK with custom wrappings to
@@ -52,12 +52,12 @@ namespace itk
  *
  * Template parameters for class CommandExhaustiveLog:
  *
- * - TInternalData = Element type stored at each location in the data image.
+ * - TValue = Element type stored at each location in the data image.
  * - TImageDimension = Dimension of image equal to number of transform parameters
  *
  * \ingroup ITKOptimizationMonitor
  */
-template <typename TInternalData, unsigned int TImageDimension>
+template <typename TValue, unsigned int TImageDimension>
 class CommandExhaustiveLog : public itk::Command
 {
 public:
@@ -67,7 +67,7 @@ public:
   itkNewMacro(Self);
 
   /** Data type for pixel values in data image */
-  using InternalDataType = TInternalData;
+  using InternalDataType = TValue;
   /** Image dimension */
   static constexpr unsigned int Dimension = TImageDimension;
 
@@ -103,12 +103,12 @@ public:
   Execute(const itk::Object * caller, const itk::EventObject & event) override;
 
   /** Retrieve a const reference to data point recorded during optimizer iteration. */
-  const TInternalData
-  GetData(const IndexType & index) const;
-  const TInternalData
-  GetData(const PointType & point) const;
-  const TInternalData
-  GetData(const ParametersType & parameters) const;
+  const TValue
+  GetValue(const IndexType & index) const;
+  const TValue
+  GetValue(const PointType & point) const;
+  const TValue
+  GetValue(const ParametersType & parameters) const;
 
   /** Center of exhaustive region is used to compute image origin at initialization */
   itkSetMacro(Center, PointType);
@@ -117,7 +117,7 @@ public:
 
   /** Provide const methods to access underlying image parameters */
   const SizeType
-  GetDataSize() const
+  GetSize() const
   {
     return m_DataImage->GetLargestPossibleRegion().GetSize();
   }
@@ -131,10 +131,15 @@ public:
   {
     return m_DataImage->GetOrigin();
   }
+  const ImagePointer
+  GetImage() const
+  {
+    return m_DataImage;
+  }
 
   /** Get the actual length of the data array in the given dimension.  */
   SizeValueType
-  GetDataSize(const int dim) const
+  GetSize(const int dim) const
   {
     return (dim < Dimension) ? m_DataImage->GetLargestPossibleRegion().GetSize()[dim] : 0;
   }
@@ -143,7 +148,7 @@ public:
   SizeValueType
   GetNumberOfSteps(const int dim) const
   {
-    return (dim < Dimension) ? ((GetDataSize()[dim] - 1) / 2) : 0;
+    return (dim < Dimension) ? ((GetSize()[dim] - 1) / 2) : 0;
   }
 
 protected:
@@ -157,9 +162,9 @@ private:
 
   /** Set data at given position. */
   void
-  SetData(const IndexType & index, const InternalDataType & value);
+  SetValue(const IndexType & index, const InternalDataType & value);
   void
-  SetData(const ParametersType & index, const InternalDataType & value);
+  SetValue(const ParametersType & index, const InternalDataType & value);
 
 private:
   /** Coordinates at center of optimization region; ex. (2.1, -1.05).
