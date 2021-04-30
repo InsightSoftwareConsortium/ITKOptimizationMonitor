@@ -75,24 +75,24 @@ public:
   // TODO allow different ExhaustiveOptimzerv4 templates
   // TODO extend for other optimizers
   using OptimizerType = itk::ExhaustiveOptimizerv4<double>;
+  using StepsType = typename OptimizerType::StepsType;
+  using MeasureType = typename OptimizerType::MeasureType;
+  /** Default optimizer geometric output type. */
+  using ParametersType = typename OptimizerType::ParametersType;
+  using ScalesType = typename OptimizerType::ScalesType;
 
   /** Image used as n-dimensional array with positional aliasing. */
   using ImageType = itk::Image<InternalDataType, Dimension>;
   using ImagePointer = typename ImageType::Pointer;
-
   /** Type to represent size of array along each dimension. */
   using SizeType = typename ImageType::SizeType;
   using SizeValueType = typename ImageType::SizeValueType;
-
   /** Discrete values to access pixel location in data image. */
   using IndexType = typename ImageType::IndexType;
   /** Geometric distance between optimizer samples. */
   using SpacingType = typename ImageType::SpacingType;
   /** Geometric coordinates of a given sample index. */
   using PointType = typename ImageType::PointType;
-
-  /** Default optimizer geometric output type. */
-  using ParametersType = typename OptimizerType::ParametersType;
 
   /** Observe an event fired by calling object. */
   void
@@ -111,9 +111,14 @@ public:
   GetValue(const ParametersType & parameters) const;
 
   /** Center of exhaustive region is used to compute image origin at initialization */
-  itkSetMacro(Center, PointType);
-  itkGetMacro(Center, PointType);
+  itkSetMacro(Center, ParametersType);
+  itkGetMacro(Center, ParametersType);
+  itkGetConstMacro(TransformToImageDimension, std::vector<int>);
+  itkGetConstMacro(ImageToTransformDimension, IndexType);
   itkGetConstMacro(DataImage, ImageType *);
+
+  void
+  SetFixedDimensions(const StepsType& value);
 
   /** Provide const methods to access underlying image parameters */
   const SizeType
@@ -166,10 +171,21 @@ private:
   void
   SetValue(const ParametersType & index, const InternalDataType & value);
 
+  int
+  TransformDimensionToImageDimension(const int dim) const;
+  int
+  ImageDimensionToTransformDimension(const int dim) const;
+
 private:
   /** Coordinates at center of optimization region; ex. (2.1, -1.05).
    *   Referenced at initialization to set image origin. */
-  PointType m_Center;
+  ParametersType m_Center;
+  /** Mask representing variable (0) and fixed (1) dimensions.
+   *   Defaults to all dimensions variable. */
+  std::vector<int> m_TransformToImageDimension;
+  /** Array cache with each element representing the corresponding
+   *   transform parameter index. */
+  IndexType m_ImageToTransformDimension;
   /** n-dimensional array with spacing to store exhaustive values */
   ImagePointer m_DataImage;
 };

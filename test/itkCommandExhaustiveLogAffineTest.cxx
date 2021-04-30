@@ -32,10 +32,10 @@
 
 /** Test to verify that CommandExhaustiveLog appropriately logs
  *   optimization data over the transform space where the
- *   number of transform parameters exactly matches the
+ *   number of transform parameters is greater than the
  *   dimensionality of the logged image. */
 int
-itkCommandExhaustiveLogTest(int argc, char * argv[])
+itkCommandExhaustiveLogAffineTest(int argc, char * argv[])
 {
   // Derived from ExhaustiveOptimizer example documentation
   if (argc < 3)
@@ -48,7 +48,7 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   using MovingImageType = itk::Image<double, 2>;
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
-  using TransformType = itk::Euler2DTransform<double>;
+  using TransformType = itk::AffineTransform<double,2>;
   using OptimizerType = itk::ExhaustiveOptimizerv4<double>;
   using MetricType = itk::MeanSquaresImageToImageMetricv4<FixedImageType, MovingImageType>;
   using TransformInitializerType = itk::CenteredTransformInitializer<TransformType, FixedImageType, MovingImageType>;
@@ -92,9 +92,12 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   initializer->InitializeTransform();
 
   // Verify initial transform initialized at 0 for this example
-  ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[0], 0);
+  ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[0], 1);
   ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[1], 0);
   ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[2], 0);
+  ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[3], 1);
+  ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[4], 0);
+  ITK_TEST_EXPECT_EQUAL(transform->GetParameters()[5], 0);
 
   // Initialize registration
   registration->SetMetric(metric);
@@ -105,7 +108,7 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
   registration->SetNumberOfLevels(1);
 
   // Create the Command observer and register it with the optimizer.
-  using ObserverType = itk::CommandExhaustiveLog<double, TransformType::ParametersDimension>;
+  using ObserverType = itk::CommandExhaustiveLog<double, 3>;
   ObserverType::Pointer observer = ObserverType::New();
 
   // Set center
@@ -115,6 +118,17 @@ itkCommandExhaustiveLogTest(int argc, char * argv[])
     center[i] = transform->GetParameters()[i];
   }
   observer->SetCenter(center);
+
+  // Set fixed vs variable parameters
+  OptimizerType::ParametersType fixedDimensions(transform->GetNumberOfParameters());
+  fixedDimensions[0] = 0;
+  fixedDimensions[1] = 0;
+  fixedDimensions[2] = 0;
+  fixedDimensions[3] = 1;
+  fixedDimensions[4] = 1;
+  fixedDimensions[5] = 1;
+  observer->SetFixedDimensions(fixedDimensions);
+
   optimizer->AddObserver(itk::StartEvent(), observer);
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
